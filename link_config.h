@@ -29,6 +29,16 @@
 #ifndef MBEDTLS_CONFIG_H
 #define MBEDTLS_CONFIG_H
 
+
+//Use `#if HAVE_WINDOWS` for any windows specific settings
+#if defined __win32 || defined __win64
+#define HAVE_WINDOWS 1
+#endif
+
+#if defined __macosx
+#define HAVE_UNIX 1
+#endif
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
