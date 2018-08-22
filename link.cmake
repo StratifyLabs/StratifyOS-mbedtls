@@ -9,7 +9,6 @@ set(SOS_LIB_SOURCELIST
 	${SOURCES_PREFIX}/net_sockets.c
 	link_config.h
 	link_config.c
-	net_sockets.c
 	timing_alt.h
 	mbedtls_api.h
 	mbedtls_api.c)

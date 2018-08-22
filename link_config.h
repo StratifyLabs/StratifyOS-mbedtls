@@ -30,9 +30,11 @@
 #define MBEDTLS_CONFIG_H
 
 
+
 //Use `#if HAVE_WINDOWS` for any windows specific settings
 #if defined __win32 || defined __win64
 #define HAVE_WINDOWS 1
+//#define _WIN32 1
 #endif
 
 #if defined __macosx
@@ -2555,7 +2557,7 @@
  *
  * This module enables abstraction of common (libc) functions.
  */
-//#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PLATFORM_C
 
 /**
  * \def MBEDTLS_POLY1305_C
