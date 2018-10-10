@@ -11,7 +11,8 @@ set(SOS_LIB_SOURCELIST
 	net_sockets.c
 	timing_alt.h
 	mbedtls_api.h
-	mbedtls_api.c)
+	mbedtls_api.c
+	threading.c)
 
 
 # kernel release and debug configurations

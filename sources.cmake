@@ -59,7 +59,7 @@ set(SOURCES
 		${SOURCES_PREFIX}/sha1.c
 		${SOURCES_PREFIX}/sha256.c
 		${SOURCES_PREFIX}/sha512.c
-		${SOURCES_PREFIX}/threading.c
+	#	${SOURCES_PREFIX}/threading.c
 		${SOURCES_PREFIX}/timing.c
 		${SOURCES_PREFIX}/version.c
 		${SOURCES_PREFIX}/version_features.c

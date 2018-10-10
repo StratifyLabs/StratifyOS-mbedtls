@@ -11,7 +11,8 @@ set(SOS_LIB_SOURCELIST
 	link_config.c
 	timing_alt.h
 	mbedtls_api.h
-	mbedtls_api.c)
+	mbedtls_api.c
+	threading.c)
 
 set(SOS_LIB_OPTION "")
 set(SOS_LIB_TYPE release)
