@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sos/secure_socket_types.h>
 #include "mbedtls_api.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
@@ -103,7 +104,7 @@ int sslVerify(void * ctx,
 				  uint32_t *flags){
 	int ret = 0;
 
-	printf("Verify SSL flags %X\n", *flags);
+	printf("Verify SSL flags " F32X "\n", *flags);
 
 	/*
 	  * If MBEDTLS_HAVE_TIME_DATE is defined, then the certificate date and time
@@ -193,7 +194,7 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	mbedtls_ssl_conf_ca_chain( &mbedtls_context->conf, &mbedtls_context->cacert, NULL );
 	mbedtls_ssl_conf_rng( &mbedtls_context->conf, mbedtls_ctr_drbg_random, &mbedtls_context->ctr_drbg );
 	mbedtls_ssl_conf_dbg( &mbedtls_context->conf, my_debug, stdout );
-	mbedtls_debug_set_threshold(2);
+	mbedtls_debug_set_threshold(0);
 
 	if( ( ret = mbedtls_ssl_setup( &mbedtls_context->ssl, &mbedtls_context->conf ) ) != 0 ){
 		printf("Failed to ssl setup\n");
@@ -266,6 +267,18 @@ const mbedtls_api_t mbedtls_api = {
 	.write = tls_write,
 	.connect = tls_connect
 };
+
+#if !defined __link
+
+unsigned long mbedtls_timing_hardclock( void ){
+	 struct timespec now;
+	 clock_gettime(CLOCK_REALTIME, &now);
+	 return now.tv_sec * 1000000 + now.tv_nsec / 1000UL;
+}
+
+
+#endif
+
 
 //for server implementation
 //bind_and_listen
