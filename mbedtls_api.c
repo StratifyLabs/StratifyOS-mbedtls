@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <sos/secure_socket_types.h>
 #include "mbedtls_api.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
@@ -104,8 +103,6 @@ int sslVerify(void * ctx,
 				  uint32_t *flags){
 	int ret = 0;
 
-	printf("Verify SSL flags " F32X "\n", *flags);
-
 	/*
 	  * If MBEDTLS_HAVE_TIME_DATE is defined, then the certificate date and time
 	  * validity checks will probably fail because this application does not set
@@ -159,8 +156,6 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 		free(mbedtls_context);
 		return -1;
 	}
-
-	printf("New socket fd id %d\n", mbedtls_context->server_fd.fd);
 
 	*context = mbedtls_context;
 	return 0;
