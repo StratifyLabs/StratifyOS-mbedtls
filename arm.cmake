@@ -16,12 +16,18 @@ set(SOS_LIB_SOURCELIST
 
 
 # kernel release and debug configurations
+option(BUILD_RELEASE "Build release version of library" ON)
+if(BUILD_RELEASE)
 set(SOS_LIB_TYPE release)
 set(SOS_LIB_OPTION kernel)
 set(SOS_LIB_INCLUDE_DIRECTORIES mbedtls/include ${CMAKE_SOURCE_DIR})
 set(SOS_LIB_DEFINITIONS -DMBEDTLS_CONFIG_FILE="sos_config.h" -DHAVE_LWIP_SOCKETS_H)
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
+endif()
 
+option(BUILD_DEBUG "Build debug version of library" OFF)
+if(BUILD_DEBUG)
 set(SOS_LIB_TYPE debug)
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
+endif()
 
