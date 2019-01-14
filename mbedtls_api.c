@@ -93,8 +93,12 @@ static void my_debug( void *ctx, int level,
 {
 	((void) level);
 
+#if defined __link
 	fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
 	fflush(  (FILE *) ctx  );
+#else
+	mcu_debug_printf("mbedtls:%s:%04d: %s", file, line, str);
+#endif
 }
 
 int sslVerify(void * ctx,
@@ -145,7 +149,7 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 	if( (result = mbedtls_x509_crt_parse( &mbedtls_context->cacert,
 													  (const u8 *)root_certificate,
 													  strlen(root_certificate) + 1 )) < 0 ){
-		printf("failed to crt parse %X\n", -1*result);
+		mcu_debug_printf("failed to crt parse %X\n", -1*result);
 		return -1;
 	}
 
@@ -158,6 +162,7 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 	}
 
 	*context = mbedtls_context;
+	mcu_debug_printf("tls socket is returning 0\n");
 	return 0;
 }
 
@@ -172,7 +177,7 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	//mbedtls_net_connect( &mbedtls_context->server_fd, "SERVER_NAME", 8080, MBEDTLS_NET_PROTO_TCP );
 
 	if( connect(mbedtls_context->server_fd.fd, address, address_len) < 0 ){
-		printf("Failed to connect at socket level %d\n", mbedtls_context->server_fd.fd);
+		mcu_debug_printf("Failed to connect at socket level %d (0x%X) to %s\n", mbedtls_context->server_fd.fd, mbedtls_context->server_fd.fd);
 		return -1;
 	}
 
@@ -181,18 +186,22 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 														  MBEDTLS_SSL_TRANSPORT_STREAM,
 														  MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
 	{
-		printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
+		mcu_debug_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
 		return -1;
 	}
 
 	mbedtls_ssl_conf_authmode( &mbedtls_context->conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
 	mbedtls_ssl_conf_ca_chain( &mbedtls_context->conf, &mbedtls_context->cacert, NULL );
 	mbedtls_ssl_conf_rng( &mbedtls_context->conf, mbedtls_ctr_drbg_random, &mbedtls_context->ctr_drbg );
+#if defined __link
 	mbedtls_ssl_conf_dbg( &mbedtls_context->conf, my_debug, stdout );
+#else
+	mbedtls_ssl_conf_dbg( &mbedtls_context->conf, my_debug, 0 );
+#endif
 	mbedtls_debug_set_threshold(0);
 
 	if( ( ret = mbedtls_ssl_setup( &mbedtls_context->ssl, &mbedtls_context->conf ) ) != 0 ){
-		printf("Failed to ssl setup\n");
+		mcu_debug_printf("Failed to ssl setup\n");
 		return -1;
 	}
 
@@ -200,7 +209,7 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 
 
 	if( ( ret = mbedtls_ssl_set_hostname( &mbedtls_context->ssl, server_name) ) != 0 ){
-		printf("Failed to set host name\n");
+		mcu_debug_printf("Failed to set host name\n");
 		return -1;
 	}
 
@@ -214,7 +223,7 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	while( ( ret = mbedtls_ssl_handshake( &mbedtls_context->ssl ) ) != 0 ){
 		if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
 		{
-			printf("handshake failed (%X)\n", ret*-1);
+			mcu_debug_printf("handshake failed (%X)\n", ret*-1);
 			return -1;
 		}
 	}
