@@ -6,6 +6,14 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/certs.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/ssl_ticket.h"
+
+#define MBEDTLS_DEBUG_LEVEL 0
+
+#if defined __link
+#undef mcu_debug_printf
+#define mcu_debug_printf printf
+#endif
 
 const char * root_certificate =
 		#if 0
@@ -85,6 +93,8 @@ typedef struct {
 	mbedtls_ssl_context ssl;
 	mbedtls_ssl_config conf;
 	mbedtls_x509_crt cacert;
+	mbedtls_ssl_ticket_context ticket;
+	mbedtls_ssl_session session;
 } mbedtls_socket_context_t;
 
 static void my_debug( void *ctx, int level,
@@ -124,6 +134,11 @@ int tls_initialize(void * context){
 	return 0;
 }
 
+int tls_fileno(void * context){
+	mbedtls_socket_context_t * mbedtls_context = context;
+	return mbedtls_context->server_fd.fd;
+}
+
 //create
 int tls_socket(void ** context, int domain, int type, int protocol){
 	int result;
@@ -133,12 +148,14 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 		return -1;
 	}
 
+	memset( mbedtls_context, 0, sizeof(mbedtls_socket_context_t));
 	mbedtls_entropy_init( &mbedtls_context->entropy );
 	mbedtls_ctr_drbg_init( &mbedtls_context->ctr_drbg );
 	mbedtls_x509_crt_init( &mbedtls_context->cacert );
 	mbedtls_net_init( &mbedtls_context->server_fd );
 	mbedtls_ssl_init( &mbedtls_context->ssl );
 	mbedtls_ssl_config_init( &mbedtls_context->conf );
+	mbedtls_ssl_ticket_init( &mbedtls_context->ticket );
 
 	mbedtls_ctr_drbg_seed( &mbedtls_context->ctr_drbg,
 								  mbedtls_entropy_func,
@@ -162,7 +179,6 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 	}
 
 	*context = mbedtls_context;
-	mcu_debug_printf("tls socket is returning 0\n");
 	return 0;
 }
 
@@ -176,8 +192,11 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	//net_connect calls socket and connect and getaddrinfo -- just call connect directly
 	//mbedtls_net_connect( &mbedtls_context->server_fd, "SERVER_NAME", 8080, MBEDTLS_NET_PROTO_TCP );
 
+
 	if( connect(mbedtls_context->server_fd.fd, address, address_len) < 0 ){
-		mcu_debug_printf("Failed to connect at socket level %d (0x%X) to %s\n", mbedtls_context->server_fd.fd, mbedtls_context->server_fd.fd);
+		mcu_debug_printf("Failed to connect at socket level %d (0x%X)\n",
+							  mbedtls_context->server_fd.fd,
+							  mbedtls_context->server_fd.fd);
 		return -1;
 	}
 
@@ -198,7 +217,8 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 #else
 	mbedtls_ssl_conf_dbg( &mbedtls_context->conf, my_debug, 0 );
 #endif
-	mbedtls_debug_set_threshold(0);
+	mbedtls_debug_set_threshold(MBEDTLS_DEBUG_LEVEL);
+	mbedtls_ssl_conf_session_tickets(&mbedtls_context->conf, MBEDTLS_SSL_SESSION_TICKETS_ENABLED);
 
 	if( ( ret = mbedtls_ssl_setup( &mbedtls_context->ssl, &mbedtls_context->conf ) ) != 0 ){
 		mcu_debug_printf("Failed to ssl setup\n");
@@ -208,7 +228,7 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	mbedtls_ssl_conf_verify(&mbedtls_context->conf, sslVerify, 0);
 
 
-	if( ( ret = mbedtls_ssl_set_hostname( &mbedtls_context->ssl, server_name) ) != 0 ){
+	if( ( ret = mbedtls_ssl_set_hostname(&mbedtls_context->ssl, server_name) ) != 0 ){
 		mcu_debug_printf("Failed to set host name\n");
 		return -1;
 	}
@@ -219,6 +239,19 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 								mbedtls_net_recv,
 								NULL);
 
+	if( mbedtls_context->ticket.f_rng != 0 ){
+
+		if( ( ret = mbedtls_ssl_session_reset( &mbedtls_context->ssl ) ) != 0 ){
+			mcu_debug_printf("Warning: Failed to reset session %X)\n", ret*-1);
+		} else {
+
+			//set the session if the ticket has been parsed
+			if( ( ret = mbedtls_ssl_set_session( &mbedtls_context->ssl, &mbedtls_context->session ) ) != 0 ){
+				mcu_debug_printf("Warning: Failed to set session %X)\n", ret*-1);
+			}
+		}
+
+	}
 
 	while( ( ret = mbedtls_ssl_handshake( &mbedtls_context->ssl ) ) != 0 ){
 		if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
@@ -228,12 +261,18 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 		}
 	}
 
-
 	/* In real life, we probably want to bail out when ret != 0 */
 	if( ( flags = mbedtls_ssl_get_verify_result( &mbedtls_context->ssl ) ) != 0 ){
 		char vrfy_buf[512];
 		mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 	}
+
+
+	//grab the session
+	if( ( ret = mbedtls_ssl_get_session( &mbedtls_context->ssl, &mbedtls_context->session ) ) != 0 ){
+		mcu_debug_printf("Warning: Failed to get session %X)\n", ret*-1);
+	}
+
 
 	return 0;
 }
@@ -257,11 +296,73 @@ int tls_close(void ** context){
 	mbedtls_ssl_close_notify( &mbedtls_context->ssl );
 	mbedtls_net_free( &mbedtls_context->server_fd );
 	mbedtls_x509_crt_free( &mbedtls_context->cacert );
+	mbedtls_ssl_session_free( &mbedtls_context->session );
 	mbedtls_ssl_free( &mbedtls_context->ssl );
 	mbedtls_ssl_config_free( &mbedtls_context->conf );
 	mbedtls_ctr_drbg_free( &mbedtls_context->ctr_drbg );
 	mbedtls_entropy_free( &mbedtls_context->entropy );
+	free(mbedtls_context);
 	return 0;
+}
+
+int tls_session_ticket_size(void * context){
+	//??
+	return 0;
+}
+
+int tls_write_ticket(void * context, void * buf, int nbyte, u32 lifetime){
+	mbedtls_socket_context_t * mbedtls_context = context;
+	unsigned char * start = buf;
+	unsigned char * end = start + nbyte;
+	size_t ticket_length;
+	u32 ticket_lifetime;
+
+
+	if( mbedtls_context->ticket.f_rng == 0 ){
+		//ticket hasn't been setup yet
+		if( mbedtls_ssl_ticket_setup(&mbedtls_context->ticket,
+											  mbedtls_ctr_drbg_random,
+											  &mbedtls_context->ctr_drbg,
+											  MBEDTLS_CIPHER_AES_256_GCM, lifetime) < 0 ){
+			mcu_debug_printf("Failed to setup ticket\n");
+			return -1;
+		}
+	}
+
+	int result = mbedtls_ssl_ticket_write(&mbedtls_context->ticket,
+													  &mbedtls_context->session,
+													  buf, end, &ticket_length, &ticket_lifetime);
+
+	if( result < 0 ){
+		return result;
+	}
+
+	return ticket_length;
+}
+
+int tls_parse_ticket(void * context, void * buf, int nbyte){
+	mbedtls_socket_context_t * mbedtls_context = context;
+
+	if( mbedtls_context->ticket.f_rng == 0 ){
+		//ticket hasn't been setup yet
+		if( mbedtls_ssl_ticket_setup(&mbedtls_context->ticket,
+											  mbedtls_ctr_drbg_random,
+											  &mbedtls_context->ctr_drbg,
+											  MBEDTLS_CIPHER_AES_256_GCM,
+											  86400) < 0 ){
+			mcu_debug_printf("Failed to setup ticket\n");
+			return -1;
+		}
+
+		//grab the key from the incoming ticket
+		memcpy(&mbedtls_context->ticket.keys[0], buf, sizeof(mbedtls_ssl_ticket_key));
+		mbedtls_context->ticket.active = 0;
+	}
+
+	printf("parse ticket\n");
+	return mbedtls_ssl_ticket_parse(&mbedtls_context->ticket,
+													  &mbedtls_context->session,
+													  buf, nbyte);
 }
 
 const mbedtls_api_t mbedtls_api = {
@@ -269,15 +370,18 @@ const mbedtls_api_t mbedtls_api = {
 	.close = tls_close,
 	.read = tls_read,
 	.write = tls_write,
-	.connect = tls_connect
+	.connect = tls_connect,
+	.fileno = tls_fileno,
+	.write_ticket = tls_write_ticket,
+	.parse_ticket = tls_parse_ticket
 };
 
 #if !defined __link
 
 unsigned long mbedtls_timing_hardclock( void ){
-	 struct timespec now;
-	 clock_gettime(CLOCK_REALTIME, &now);
-	 return now.tv_sec * 1000000 + now.tv_nsec / 1000UL;
+	struct timespec now;
+	clock_gettime(CLOCK_REALTIME, &now);
+	return now.tv_sec * 1000000 + now.tv_nsec / 1000UL;
 }
 
 

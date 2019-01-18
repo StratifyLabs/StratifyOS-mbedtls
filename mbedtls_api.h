@@ -27,6 +27,9 @@ typedef struct {
 	int (*close)(void ** context);
 	int (*write)(void * context, const void * buf, int nbyte);
 	int (*read)(void * context, void * buf, int nbyte);
+	int (*fileno)(void * context);
+	int (*write_ticket)(void * context, void * buf, int nbyte, u32 lifetime);
+	int (*parse_ticket)(void * context, void * buf, int nbyte);
 
 	//server
 	//bind_and_listen()
