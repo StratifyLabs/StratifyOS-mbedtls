@@ -13,6 +13,8 @@
 #if defined __link
 #undef mcu_debug_printf
 #define mcu_debug_printf printf
+#else
+#include <mcu/debug.h>
 #endif
 
 const char * root_certificate =
