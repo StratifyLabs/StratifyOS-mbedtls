@@ -8,7 +8,7 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl_ticket.h"
 
-#define MBEDTLS_DEBUG_LEVEL 0
+#define MBEDTLS_DEBUG_LEVEL 1
 
 #if defined __link
 #undef mcu_debug_printf
@@ -138,6 +138,7 @@ int tls_initialize(void * context){
 
 int tls_fileno(void * context){
 	mbedtls_socket_context_t * mbedtls_context = context;
+	if( context == 0 ){ return -1; }
 	return mbedtls_context->server_fd.fd;
 }
 

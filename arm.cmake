@@ -16,7 +16,6 @@ set(SOS_LIB_SOURCELIST
 	threading.c)
 
 set(SOS_LIB_OPTION kernel)
-set(SOS_LIB_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config mbedtls/include ${CMAKE_SOURCE_DIR})
 set(SOS_LIB_DEFINITIONS -DHAVE_LWIP_SOCKETS_H)
 
 # kernel release and debug configurations
