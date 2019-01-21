@@ -19,6 +19,24 @@ typedef u32 in_addr_t;
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
 
+typedef struct {
+
+	//enough for a client
+	int (*socket)(void ** context, int domain, int type, int protocol);
+	int (*connect)(void * context, const struct sockaddr *address, socklen_t address_len, const char * server_name);
+	int (*close)(void ** context);
+	int (*write)(void * context, const void * buf, int nbyte);
+	int (*read)(void * context, void * buf, int nbyte);
+	int (*fileno)(void * context);
+	int (*write_ticket)(void * context, void * buf, int nbyte, u32 lifetime);
+	int (*parse_ticket)(void * context, void * buf, int nbyte);
+
+	//server
+	//bind_and_listen()
+	//accept()
+
+} mbedtls_api_t;
+
 extern const mbedtls_api_t mbedtls_api;
 
 

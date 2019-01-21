@@ -6,6 +6,7 @@ set(SOS_LIB_SOURCELIST
 	${X509_SOURCES}
 	${SOURCES}
 	${HEADERS}
+	config/mbedtls/config.h
 	sos_config.h
 	sos_config.c
 	net_sockets.c
@@ -15,8 +16,8 @@ set(SOS_LIB_SOURCELIST
 	threading.c)
 
 set(SOS_LIB_OPTION kernel)
-set(SOS_LIB_INCLUDE_DIRECTORIES mbedtls/include ${CMAKE_SOURCE_DIR})
-set(SOS_LIB_DEFINITIONS -DMBEDTLS_CONFIG_FILE="sos_config.h" -DHAVE_LWIP_SOCKETS_H)
+set(SOS_LIB_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config mbedtls/include ${CMAKE_SOURCE_DIR})
+set(SOS_LIB_DEFINITIONS -DHAVE_LWIP_SOCKETS_H)
 
 # kernel release and debug configurations
 option(BUILD_RELEASE "Build release version of library" OFF)

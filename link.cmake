@@ -16,7 +16,7 @@ set(SOS_LIB_SOURCELIST
 
 set(SOS_LIB_OPTION "")
 set(SOS_LIB_TYPE release)
-set(SOS_LIB_INCLUDE_DIRECTORIES mbedtls/include ${CMAKE_SOURCE_DIR})
+set(SOS_LIB_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config mbedtls/include ${CMAKE_SOURCE_DIR})
 set(SOS_LIB_DEFINITIONS -DMBEDTLS_CONFIG_FILE="link_config.h")
 set(SOS_LIB_ARCH link)
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib.cmake)
