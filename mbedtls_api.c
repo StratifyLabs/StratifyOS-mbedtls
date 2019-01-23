@@ -8,12 +8,13 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl_ticket.h"
 
-#define MBEDTLS_DEBUG_LEVEL 1
 
 #if defined __link
+#define MBEDTLS_DEBUG_LEVEL 0
 #undef mcu_debug_printf
 #define mcu_debug_printf printf
 #else
+#define MBEDTLS_DEBUG_LEVEL 4
 #include <mcu/debug.h>
 #endif
 
