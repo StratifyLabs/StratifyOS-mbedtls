@@ -19,6 +19,8 @@ typedef u32 in_addr_t;
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
 
+#define MBEDTLS_API_T 1 //increment when adding functions
+
 typedef struct {
 
 	//enough for a client
@@ -38,6 +40,12 @@ typedef struct {
 } mbedtls_api_t;
 
 extern const mbedtls_api_t mbedtls_api;
+
+#if defined __link
+#define MBEDTLS_API_REQUEST &mbedtls_api
+#else
+#define MBEDTLS_API_REQUEST MCU_API_REQUEST_CODE('m','t','l','s')
+#endif
 
 
 #endif /* MBEDTLS_API_H */

@@ -14,7 +14,7 @@
 #undef mcu_debug_printf
 #define mcu_debug_printf printf
 #else
-#define MBEDTLS_DEBUG_LEVEL 4
+#define MBEDTLS_DEBUG_LEVEL 2
 #include <mcu/debug.h>
 #endif
 
@@ -107,6 +107,7 @@ static void my_debug( void *ctx, int level,
 	((void) level);
 
 #if defined __link
+	//usleep(20*1000);
 	fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
 	fflush(  (FILE *) ctx  );
 #else
@@ -167,12 +168,14 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 								  (const unsigned char *) pers,
 								  strlen( pers ) );
 
+#if 0
 	if( (result = mbedtls_x509_crt_parse( &mbedtls_context->cacert,
 													  (const u8 *)root_certificate,
 													  strlen(root_certificate) + 1 )) < 0 ){
 		mcu_debug_printf("failed to crt parse %X\n", -1*result);
-		return -1;
+		//return -1;
 	}
+#endif
 
 
 	//call socket directly
@@ -195,14 +198,6 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 
 	//net_connect calls socket and connect and getaddrinfo -- just call connect directly
 	//mbedtls_net_connect( &mbedtls_context->server_fd, "SERVER_NAME", 8080, MBEDTLS_NET_PROTO_TCP );
-
-
-	if( connect(mbedtls_context->server_fd.fd, address, address_len) < 0 ){
-		mcu_debug_printf("Failed to connect at socket level %d (0x%X)\n",
-							  mbedtls_context->server_fd.fd,
-							  mbedtls_context->server_fd.fd);
-		return -1;
-	}
 
 	if( ( ret = mbedtls_ssl_config_defaults( &mbedtls_context->conf,
 														  MBEDTLS_SSL_IS_CLIENT,
@@ -255,6 +250,14 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 			}
 		}
 
+	}
+
+
+	if( connect(mbedtls_context->server_fd.fd, address, address_len) < 0 ){
+		mcu_debug_printf("Failed to connect at socket level %d (0x%X)\n",
+							  mbedtls_context->server_fd.fd,
+							  mbedtls_context->server_fd.fd);
+		return -1;
 	}
 
 	while( ( ret = mbedtls_ssl_handshake( &mbedtls_context->ssl ) ) != 0 ){

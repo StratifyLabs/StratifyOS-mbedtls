@@ -24,5 +24,5 @@ project(${SOS_LIB_NAME} CXX C ASM)
 
 set(SOS_LIB_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/config/mbedtls mbedtls/include ${CMAKE_SOURCE_DIR})
 install(DIRECTORY mbedtls/include/mbedtls DESTINATION include)
-install(FILES mbedtls_api.h link_config.h DESTINATION include)
+install(FILES mbedtls_api.h link_config.h sos_config.h DESTINATION include)
 include( ${CMAKE_SOURCE_DIR}/${SOS_BUILD_CONFIG}.cmake )

@@ -18,6 +18,7 @@ include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-sdk.cmake)
 
 #Pull or clone mbed-tls project
 sos_sdk_clone_or_pull(./mbedtls https://github.com/ARMmbed/mbedtls.git ./)
+sos_sdk_checkout(mbedtls "mbedtls-2.16")
 
 #Need to rename mbedtls/include/mbedtls/config.h to mbedtls/include/mbedtls/config_notused_renamed.h
 if(EXISTS mbedtls/include/mbedtls/config.h)
