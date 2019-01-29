@@ -14,7 +14,7 @@
 #undef mcu_debug_printf
 #define mcu_debug_printf printf
 #else
-#define MBEDTLS_DEBUG_LEVEL 2
+#define MBEDTLS_DEBUG_LEVEL 1
 #include <mcu/debug.h>
 #endif
 
@@ -146,7 +146,7 @@ int tls_fileno(void * context){
 
 //create
 int tls_socket(void ** context, int domain, int type, int protocol){
-	int result;
+	//int result;
 	const char *pers = "Mbed TLS helloword client";
 	mbedtls_socket_context_t * mbedtls_context = malloc(sizeof(mbedtls_socket_context_t));
 	if( mbedtls_context == 0 ){
