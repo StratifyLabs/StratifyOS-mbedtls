@@ -1,6 +1,6 @@
 
 mbedtls/
 .vscode/settings.json
-cmake_arm/*
+cmake_*arm/*
 CMakeLists.txt.user
-cmake_link/
+cmake_*link/
