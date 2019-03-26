@@ -2987,7 +2987,7 @@
  * Uncomment to set the size of the inward TLS buffer independently of the
  * outward buffer.
  */
-#define MBEDTLS_SSL_IN_CONTENT_LEN              4096
+#define MBEDTLS_SSL_IN_CONTENT_LEN              16384
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *
@@ -3010,7 +3010,7 @@
  * guaranteed if the other end of the connection also supports the TLS
  * max_fragment_len extension. Otherwise the connection may fail.
  */
-#define MBEDTLS_SSL_OUT_CONTENT_LEN             2048
+#define MBEDTLS_SSL_OUT_CONTENT_LEN             512
 
 //#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */

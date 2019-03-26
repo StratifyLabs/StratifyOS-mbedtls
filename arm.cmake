@@ -1,7 +1,7 @@
 
 include(${CMAKE_SOURCE_DIR}/sources.cmake)
 
-set(SOS_LIB_SOURCELIST
+set(SOS_SOURCELIST
 	${TLS_SOURCES}
 	${X509_SOURCES}
 	${SOURCES}
@@ -15,19 +15,19 @@ set(SOS_LIB_SOURCELIST
 	mbedtls_api.c
 	threading.c)
 
-set(SOS_LIB_OPTION kernel)
-set(SOS_LIB_DEFINITIONS -DHAVE_LWIP_SOCKETS_H)
+set(SOS_OPTION kernel)
+set(SOS_DEFINITIONS -DHAVE_LWIP_SOCKETS_H)
 
 # kernel release and debug configurations
 option(BUILD_RELEASE "Build release version of library" OFF)
 if(BUILD_RELEASE)
-set(SOS_LIB_TYPE release)
+set(SOS_CONFIG release)
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
 endif()
 
 option(BUILD_DEBUG "Build debug version of library" ON)
 if(BUILD_DEBUG)
-set(SOS_LIB_TYPE debug)
+set(SOS_CONFIG debug)
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
 endif()
 

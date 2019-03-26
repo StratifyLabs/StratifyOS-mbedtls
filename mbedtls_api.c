@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include "mbedtls_api.h"
@@ -150,6 +149,7 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 	const char *pers = "Mbed TLS helloword client";
 	mbedtls_socket_context_t * mbedtls_context = malloc(sizeof(mbedtls_socket_context_t));
 	if( mbedtls_context == 0 ){
+		//malloc will set errno appropriately
 		return -1;
 	}
 
@@ -196,9 +196,16 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 
 	mbedtls_socket_context_t * mbedtls_context = context;
 
+	if( context == 0 ){
+#if !defined __link
+		errno = EINVAL;
+#endif
+		return -1;
+	}
+
+
 	//net_connect calls socket and connect and getaddrinfo -- just call connect directly
 	//mbedtls_net_connect( &mbedtls_context->server_fd, "SERVER_NAME", 8080, MBEDTLS_NET_PROTO_TCP );
-
 	if( ( ret = mbedtls_ssl_config_defaults( &mbedtls_context->conf,
 														  MBEDTLS_SSL_IS_CLIENT,
 														  MBEDTLS_SSL_TRANSPORT_STREAM,
@@ -286,12 +293,24 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 
 //read
 int tls_read(void * context, void * buf, int nbyte){
+	if( context == 0 ){
+#if !defined __link
+		errno = EINVAL;
+#endif
+		return -1;
+	}
 	mbedtls_socket_context_t * mbedtls_context = context;
 	return mbedtls_ssl_read( &mbedtls_context->ssl, buf, nbyte );
 }
 
 //write
 int tls_write(void * context, const void * buf, int nbyte){
+	if( context == 0 ){
+#if !defined __link
+		errno = EINVAL;
+#endif
+		return -1;
+	}
 	mbedtls_socket_context_t * mbedtls_context = context;
 	return mbedtls_ssl_write( &mbedtls_context->ssl, buf, nbyte );
 }
@@ -300,6 +319,7 @@ int tls_write(void * context, const void * buf, int nbyte){
 int tls_close(void ** context){
 	mbedtls_socket_context_t * mbedtls_context = *context;
 	*context = 0;
+	if( mbedtls_context == 0 ){ return 0; }
 	mbedtls_ssl_close_notify( &mbedtls_context->ssl );
 	mbedtls_net_free( &mbedtls_context->server_fd );
 	mbedtls_x509_crt_free( &mbedtls_context->cacert );
@@ -324,6 +344,13 @@ int tls_write_ticket(void * context, void * buf, int nbyte, u32 lifetime){
 	size_t ticket_length;
 	u32 ticket_lifetime;
 
+	if( context == 0 ){
+#if !defined __link
+		errno = EINVAL;
+#endif
+		return -1;
+	}
+
 
 	if( mbedtls_context->ticket.f_rng == 0 ){
 		//ticket hasn't been setup yet
@@ -331,7 +358,6 @@ int tls_write_ticket(void * context, void * buf, int nbyte, u32 lifetime){
 											  mbedtls_ctr_drbg_random,
 											  &mbedtls_context->ctr_drbg,
 											  MBEDTLS_CIPHER_AES_256_GCM, lifetime) < 0 ){
-			mcu_debug_printf("Failed to setup ticket\n");
 			return -1;
 		}
 	}
@@ -349,6 +375,13 @@ int tls_write_ticket(void * context, void * buf, int nbyte, u32 lifetime){
 
 int tls_parse_ticket(void * context, void * buf, int nbyte){
 	mbedtls_socket_context_t * mbedtls_context = context;
+
+	if( context == 0 ){
+#if !defined __link
+		errno = EINVAL;
+#endif
+		return -1;
+	}
 
 	if( mbedtls_context->ticket.f_rng == 0 ){
 		//ticket hasn't been setup yet

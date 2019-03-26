@@ -10,19 +10,18 @@ if( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows" )
   set(SOS_TOOLCHAIN_CMAKE_PATH C:/StratifyLabs-SDK/Tools/gcc/arm-none-eabi/cmake)
 endif()
 
-include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-resolve-build-config.cmake)
+include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-variables.cmake)
 
 if( ${SOS_BUILD_CONFIG} STREQUAL arm )
-  message(STATUS "Load SOS Lib Toolchain for arm: " ${SOS_TOOLCHAIN_CMAKE_PATH})
   set(CMAKE_TOOLCHAIN_FILE ${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-toolchain.cmake)
 elseif( ${SOS_BUILD_CONFIG} STREQUAL link )
   set(CMAKE_TOOLCHAIN_FILE ${SOS_TOOLCHAIN_CMAKE_PATH}/link-toolchain.cmake)
 endif()
 
-set(SOS_LIB_NAME mbedtls)
-project(${SOS_LIB_NAME} CXX C ASM)
+set(SOS_NAME mbedtls)
+project(${SOS_NAME} CXX C ASM)
 
-set(SOS_LIB_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/config/mbedtls mbedtls/include ${CMAKE_SOURCE_DIR})
+set(SOS_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/config/mbedtls mbedtls/include ${CMAKE_SOURCE_DIR})
 install(DIRECTORY mbedtls/include/mbedtls DESTINATION include)
 install(FILES mbedtls_api.h link_config.h sos_config.h DESTINATION include)
 include( ${CMAKE_SOURCE_DIR}/${SOS_BUILD_CONFIG}.cmake )
