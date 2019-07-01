@@ -402,7 +402,6 @@ int tls_parse_ticket(void * context, void * buf, int nbyte){
 		mbedtls_context->ticket.active = 0;
 	}
 
-	printf("parse ticket\n");
 	return mbedtls_ssl_ticket_parse(&mbedtls_context->ticket,
 													  &mbedtls_context->session,
 													  buf, nbyte);
