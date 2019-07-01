@@ -509,7 +509,7 @@
  * This option is independent of \c MBEDTLS_AES_ROM_TABLES.
  *
  */
-//#define MBEDTLS_AES_FEWER_TABLES
+#define MBEDTLS_AES_FEWER_TABLES
 
 /**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
@@ -3010,7 +3010,7 @@
  * guaranteed if the other end of the connection also supports the TLS
  * max_fragment_len extension. Otherwise the connection may fail.
  */
-#define MBEDTLS_SSL_OUT_CONTENT_LEN             512
+#define MBEDTLS_SSL_OUT_CONTENT_LEN             1024
 
 //#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
@@ -3028,7 +3028,7 @@
  *
  * The value below is only an example, not the default.
  */
-#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_RSA_WITH_AES_128_GCM_SHA256
 
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */

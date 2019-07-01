@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
 #include "mbedtls_api.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/certs.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl_ticket.h"
+
 
 
 #if defined __link

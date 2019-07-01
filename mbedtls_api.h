@@ -1,7 +1,8 @@
 #ifndef MBEDTLS_API_H
 #define MBEDTLS_API_H
 
-#include <mcu/types.h>
+#include <sos/crypt_api.h>
+
 
 #if defined __win32
 #define _BSD_SOURCE
@@ -39,13 +40,23 @@ typedef struct {
 
 } mbedtls_api_t;
 
+//#if defined __cplusplus
+//extern "C" {
+//#endif
+
 extern const mbedtls_api_t mbedtls_api;
+extern const crypt_hash_api_t mbedtls_crypt_sha256_api;
+extern const crypt_hash_api_t mbedtls_crypt_sha512_api;
 
 #if defined __link
 #define MBEDTLS_API_REQUEST &mbedtls_api
 #else
 #define MBEDTLS_API_REQUEST MCU_API_REQUEST_CODE('m','t','l','s')
 #endif
+
+//#if defined __cplusplus
+//}
+//#endif
 
 
 #endif /* MBEDTLS_API_H */
