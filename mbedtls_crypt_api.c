@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include "mbedtls_api.h"
 #include "mbedtls/entropy.h"
@@ -9,11 +10,11 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl_ticket.h"
 
-int sha256_init(void ** context);
-void sha256_deinit(void ** context);
-int sha256_start(void * context);
-int sha256_update(void * context, const unsigned char * input, u32 size);
-int sha256_finish(void * context, unsigned char * output, u32 size);
+static int sha256_init(void ** context);
+static void sha256_deinit(void ** context);
+static int sha256_start(void * context);
+static int sha256_update(void * context, const unsigned char * input, u32 size);
+static int sha256_finish(void * context, unsigned char * output, u32 size);
 
 const crypt_hash_api_t mbedtls_crypt_sha256_api = {
 	.init = sha256_init,
@@ -27,11 +28,11 @@ typedef struct {
 	mbedtls_sha256_context sha256;
 } mbedtls_crypt_sha256_context_t;
 
-int sha512_init(void ** context);
-void sha512_deinit(void ** context);
-int sha512_start(void * context);
-int sha512_update(void * context, const unsigned char * input, u32 size);
-int sha512_finish(void * context, unsigned char * output, u32 size);
+static int sha512_init(void ** context);
+static void sha512_deinit(void ** context);
+static int sha512_start(void * context);
+static int sha512_update(void * context, const unsigned char * input, u32 size);
+static int sha512_finish(void * context, unsigned char * output, u32 size);
 
 const crypt_hash_api_t mbedtls_crypt_sha512_api = {
 	.init = sha512_init,
@@ -127,7 +128,7 @@ int sha512_update(void * context, const unsigned char * input, u32 size){
 	return mbedtls_sha512_update_ret(&c->sha512, input, size);
 }
 
-int sha255_finish(void * context, unsigned char * output, u32 size){
+int sha512_finish(void * context, unsigned char * output, u32 size){
 	if( size != 64 ){ //sha512 output is always 64 bytes (512 bits)
 		errno = EINVAL;
 		return -1;

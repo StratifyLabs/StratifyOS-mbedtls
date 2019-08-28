@@ -13,6 +13,7 @@ set(SOS_SOURCELIST
 	timing_alt.h
 	mbedtls_api.h
 	mbedtls_api.c
+	mbedtls_crypt_api.c
 	threading.c)
 
 set(SOS_OPTION "")
