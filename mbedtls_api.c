@@ -165,11 +165,13 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 	mbedtls_ssl_config_init( &mbedtls_context->conf );
 	mbedtls_ssl_ticket_init( &mbedtls_context->ticket );
 
-	mbedtls_ctr_drbg_seed( &mbedtls_context->ctr_drbg,
-								  mbedtls_entropy_func,
-								  &mbedtls_context->entropy,
-								  (const unsigned char *) pers,
-								  strlen( pers ) );
+	mbedtls_ctr_drbg_seed(
+				&mbedtls_context->ctr_drbg,
+				mbedtls_entropy_func,
+				&mbedtls_context->entropy,
+				(const unsigned char *) pers,
+				strlen( pers )
+				);
 
 #if 0
 	if( (result = mbedtls_x509_crt_parse( &mbedtls_context->cacert,
@@ -403,8 +405,8 @@ int tls_parse_ticket(void * context, void * buf, int nbyte){
 	}
 
 	return mbedtls_ssl_ticket_parse(&mbedtls_context->ticket,
-													  &mbedtls_context->session,
-													  buf, nbyte);
+											  &mbedtls_context->session,
+											  buf, nbyte);
 }
 
 const mbedtls_api_t mbedtls_api = {

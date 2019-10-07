@@ -3,6 +3,7 @@
 #include <errno.h>
 
 #include "mbedtls_api.h"
+#include "mbedtls/aes.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/ctr_drbg.h"
@@ -57,6 +58,7 @@ int sha256_init(void ** context){
 void sha256_deinit(void ** context){
 	mbedtls_crypt_sha256_context_t * c = *context;
 	if( c ){
+		mbedtls_sha256_free(&c->sha256);
 		free(c);
 		*context = 0;
 	}
@@ -105,6 +107,7 @@ int sha512_init(void ** context){
 void sha512_deinit(void ** context){
 	mbedtls_crypt_sha512_context_t * c = *context;
 	if( c ){
+		mbedtls_sha512_free(&c->sha512);
 		free(c);
 		*context = 0;
 	}
@@ -141,3 +144,306 @@ int sha512_finish(void * context, unsigned char * output, u32 size){
 	}
 	return mbedtls_sha512_finish_ret(&c->sha512, output);
 }
+
+static int aes_init(void ** context);
+static void aes_deinit(void ** context);
+static int aes_set_key(void * context, const unsigned char * key, u32 keybits);
+
+static int aes_encrypt_ecb(void * context,
+									const unsigned char input[16],
+unsigned char output[16]);
+
+static int aes_decrypt_ecb(void * context, const unsigned char input[16], unsigned char output[16]);
+
+static int aes_encrypt_cbc(void * context, u32 length, unsigned char iv[16], const unsigned char *input, unsigned char *output );
+
+static int aes_decrypt_cbc(void * context,
+									u32 length,
+									unsigned char iv[16],
+const unsigned char *input,
+unsigned char *output );
+
+static int aes_encrypt_ctr(void * context,
+									u32 length,
+									u32 *nc_off,
+									unsigned char nonce_counter[16],
+unsigned char stream_block[16],
+const unsigned char *input,
+unsigned char *output);
+
+static int aes_decrypt_ctr(void * context,
+									u32 length,
+									u32 *nc_off,
+									unsigned char nonce_counter[16],
+unsigned char stream_block[16],
+const unsigned char *input,
+unsigned char *output);
+
+const crypt_aes_api_t mbedtls_crypt_aes_api = {
+	.init = aes_init,
+	.deinit = aes_deinit,
+	.set_key = aes_set_key,
+	.encrypt_ecb = aes_encrypt_ecb,
+	.decrypt_ecb = aes_decrypt_ecb,
+	.encrypt_cbc = aes_encrypt_cbc,
+	.decrypt_cbc = aes_decrypt_cbc,
+	.encrypt_ctr = aes_encrypt_ctr,
+	.decrypt_ctr = aes_decrypt_ctr
+};
+
+
+typedef struct {
+	mbedtls_aes_context aes;
+	unsigned char key[32];
+	u32 key_bits;
+} mbedtls_crypt_aes_context_t;
+
+int aes_init(void ** context){
+	mbedtls_crypt_aes_context_t * c = malloc(sizeof(mbedtls_crypt_aes_context_t));
+	if( c == 0 ){ return -1; }
+	mbedtls_aes_init(&c->aes);
+	*context = c;
+	return 0;
+}
+
+void aes_deinit(void ** context){
+	mbedtls_crypt_aes_context_t * c = *context;
+	if( c ){
+		mbedtls_aes_free(&c->aes);
+		mbedtls_platform_zeroize(c, sizeof(mbedtls_crypt_aes_context_t));
+		free(c);
+		*context = 0;
+	}
+}
+
+int aes_set_key(
+		void * context,
+		const unsigned char * key,
+		u32 keybits
+		){
+	mbedtls_crypt_aes_context_t * c = context;
+	memcpy(c->key, key, keybits/8);
+	c->key_bits	= keybits;
+	return 0;
+}
+
+
+int aes_encrypt_ecb(
+		void * context,
+		const unsigned char input[16],
+unsigned char output[16]){
+	mbedtls_crypt_aes_context_t * c = context;
+
+	if( mbedtls_aes_setkey_enc(
+			 &c->aes,
+			 c->key,
+			 c->key_bits
+			 ) < 0 ){
+		return -1*__LINE__;
+	}
+
+	return mbedtls_aes_crypt_ecb(
+				&c->aes,
+				MBEDTLS_AES_ENCRYPT,
+				input,
+				output
+				);
+}
+
+int aes_decrypt_ecb(
+		void * context,
+		const unsigned char input[16],
+unsigned char output[16]
+){
+	mbedtls_crypt_aes_context_t * c = context;
+
+	if( mbedtls_aes_setkey_dec(
+			 &c->aes,
+			 c->key,
+			 c->key_bits
+			 ) < 0 ){
+		return -1*__LINE__;
+	}
+
+	return mbedtls_aes_crypt_ecb(
+				&c->aes,
+				MBEDTLS_AES_DECRYPT,
+				input,
+				output
+				);
+}
+
+int aes_encrypt_cbc(void * context,
+						  u32 length,
+						  unsigned char iv[16],
+const unsigned char *input,
+unsigned char *output
+){
+	mbedtls_crypt_aes_context_t * c = context;
+
+	if( mbedtls_aes_setkey_enc(
+			 &c->aes,
+			 c->key,
+			 c->key_bits
+			 ) < 0 ){
+		return -1*__LINE__;
+	}
+
+	return mbedtls_aes_crypt_cbc(
+				&c->aes,
+				MBEDTLS_AES_ENCRYPT,
+				length,
+				iv,
+				input,
+				output
+				);
+}
+
+int aes_decrypt_cbc(
+		void * context,
+		u32 length,
+		unsigned char iv[16],
+const unsigned char *input,
+unsigned char *output
+){
+	mbedtls_crypt_aes_context_t * c = context;
+
+	if( mbedtls_aes_setkey_dec(
+			 &c->aes,
+			 c->key,
+			 c->key_bits
+			 ) < 0 ){
+		return -1*__LINE__;
+	}
+
+	return mbedtls_aes_crypt_cbc(
+				&c->aes,
+				MBEDTLS_AES_DECRYPT,
+				length,
+				iv,
+				input,
+				output
+				);
+}
+
+int aes_encrypt_ctr(
+		void * context,
+		u32 length,
+		u32 *nc_off,
+		unsigned char nonce_counter[16],
+unsigned char stream_block[16],
+const unsigned char *input,
+unsigned char *output){
+	mbedtls_crypt_aes_context_t * c = context;
+
+	if( mbedtls_aes_setkey_enc(
+			 &c->aes,
+			 c->key,
+			 c->key_bits
+			 ) < 0 ){
+		return -1*__LINE__;
+	}
+
+	return -1;
+}
+
+int aes_decrypt_ctr(
+		void * context,
+		u32 length,
+		u32 *nc_off,
+		unsigned char nonce_counter[16],
+unsigned char stream_block[16],
+const unsigned char *input,
+unsigned char *output
+){
+	mbedtls_crypt_aes_context_t * c = context;
+
+	if( mbedtls_aes_setkey_dec(
+			 &c->aes,
+			 c->key,
+			 c->key_bits
+			 ) < 0 ){
+		return -1*__LINE__;
+	}
+
+	return -1;
+}
+
+static int mbedtls_random_init(void ** context);
+static void mbedtls_random_deinit(void ** context);
+static int mbedtls_random_seed(void * context, const unsigned char * data, u32 data_len);
+static int mbedtls_random_random(void * context, unsigned char * output, u32 output_length);
+
+const crypt_random_api_t mbedtls_crypt_random_api = {
+	.init = mbedtls_random_init,
+	.deinit = mbedtls_random_deinit,
+	.seed = mbedtls_random_seed,
+	.random = mbedtls_random_random
+};
+
+typedef struct {
+	mbedtls_entropy_context entropy;
+	mbedtls_ctr_drbg_context ctr_drbg;
+} mbedtls_crypt_random_context_t;
+
+int mbedtls_random_init(void ** context){
+	mbedtls_crypt_random_context_t * c =
+			malloc(sizeof(mbedtls_crypt_random_context_t));
+	if( c == 0 ){ return -1; }
+	mbedtls_entropy_init( &c->entropy );
+	mbedtls_ctr_drbg_init( &c->ctr_drbg );
+	*context = c;
+	return 0;
+}
+
+
+void mbedtls_random_deinit(void ** context){
+	mbedtls_crypt_random_context_t * c = *context;
+	if( c ){
+		mbedtls_entropy_free(&c->entropy);
+		mbedtls_ctr_drbg_free(&c->ctr_drbg);
+		mbedtls_platform_zeroize(c, sizeof(mbedtls_crypt_random_context_t));
+		free(c);
+		*context = 0;
+	}
+}
+
+int mbedtls_random_seed(
+		void * context,
+		const unsigned char * data,
+		u32 data_len
+		){
+	mbedtls_crypt_random_context_t * c = context;
+
+	int result = mbedtls_ctr_drbg_seed(
+				&c->ctr_drbg,
+				mbedtls_entropy_func,
+				&c->entropy,
+				data,
+				data_len
+				);
+
+	return result;
+
+}
+
+int mbedtls_random_random(
+		void * context,
+		unsigned char * output,
+		u32 output_length
+		){
+	mbedtls_crypt_random_context_t * c = context;
+	int result =
+			mbedtls_ctr_drbg_random(
+				&c->ctr_drbg,
+				output,
+				output_length
+				);
+
+	if( result == 0 ){
+		return output_length;
+	}
+
+	return -1;
+}
+
