@@ -187,6 +187,7 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 	mbedtls_context->server_fd.fd = socket(domain, type, protocol);
 	if( mbedtls_context->server_fd.fd < 0 ){
 		free(mbedtls_context);
+		*context = 0;
 		return -1;
 	}
 
