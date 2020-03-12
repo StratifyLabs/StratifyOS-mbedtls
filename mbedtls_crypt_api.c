@@ -18,6 +18,11 @@ static int sha256_update(void * context, const unsigned char * input, u32 size);
 static int sha256_finish(void * context, unsigned char * output, u32 size);
 
 const crypt_hash_api_t mbedtls_crypt_sha256_api = {
+	.sos_api = {
+		.name = "mbedtls_crypt_sha256",
+		.version = 0x0001,
+		.git_hash = SOS_GIT_HASH
+	},
 	.init = sha256_init,
 	.deinit = sha256_deinit,
 	.start = sha256_start,
@@ -36,6 +41,11 @@ static int sha512_update(void * context, const unsigned char * input, u32 size);
 static int sha512_finish(void * context, unsigned char * output, u32 size);
 
 const crypt_hash_api_t mbedtls_crypt_sha512_api = {
+	.sos_api = {
+		.name = "mbedtls_crypt_sha512",
+		.version = 0x0001,
+		.git_hash = SOS_GIT_HASH
+	},
 	.init = sha512_init,
 	.deinit = sha512_deinit,
 	.start = sha512_start,
@@ -147,10 +157,15 @@ int sha512_finish(void * context, unsigned char * output, u32 size){
 
 static int aes_init(void ** context);
 static void aes_deinit(void ** context);
-static int aes_set_key(void * context, const unsigned char * key, u32 keybits);
+static int aes_set_key(
+		void * context,
+		const unsigned char * key,
+		u32 keybits,
+		u32 bits_per_word
+		);
 
 static int aes_encrypt_ecb(void * context,
-									const unsigned char input[16],
+													 const unsigned char input[16],
 unsigned char output[16]);
 
 static int aes_decrypt_ecb(void * context, const unsigned char input[16], unsigned char output[16]);
@@ -158,28 +173,33 @@ static int aes_decrypt_ecb(void * context, const unsigned char input[16], unsign
 static int aes_encrypt_cbc(void * context, u32 length, unsigned char iv[16], const unsigned char *input, unsigned char *output );
 
 static int aes_decrypt_cbc(void * context,
-									u32 length,
-									unsigned char iv[16],
+													 u32 length,
+													 unsigned char iv[16],
 const unsigned char *input,
 unsigned char *output );
 
 static int aes_encrypt_ctr(void * context,
-									u32 length,
-									u32 *nc_off,
-									unsigned char nonce_counter[16],
+													 u32 length,
+													 u32 *nc_off,
+													 unsigned char nonce_counter[16],
 unsigned char stream_block[16],
 const unsigned char *input,
 unsigned char *output);
 
 static int aes_decrypt_ctr(void * context,
-									u32 length,
-									u32 *nc_off,
-									unsigned char nonce_counter[16],
+													 u32 length,
+													 u32 *nc_off,
+													 unsigned char nonce_counter[16],
 unsigned char stream_block[16],
 const unsigned char *input,
 unsigned char *output);
 
 const crypt_aes_api_t mbedtls_crypt_aes_api = {
+	.sos_api = {
+		.name = "mbedtls_crypt_aes",
+		.version = 0x0001,
+		.git_hash = SOS_GIT_HASH
+	},
 	.init = aes_init,
 	.deinit = aes_deinit,
 	.set_key = aes_set_key,
@@ -219,8 +239,10 @@ void aes_deinit(void ** context){
 int aes_set_key(
 		void * context,
 		const unsigned char * key,
-		u32 keybits
+		u32 keybits,
+		u32 bits_per_word
 		){
+	MCU_UNUSED_ARGUMENT(bits_per_word);
 	mbedtls_crypt_aes_context_t * c = context;
 	memcpy(c->key, key, keybits/8);
 	c->key_bits	= keybits;
@@ -235,10 +257,10 @@ unsigned char output[16]){
 	mbedtls_crypt_aes_context_t * c = context;
 
 	if( mbedtls_aes_setkey_enc(
-			 &c->aes,
-			 c->key,
-			 c->key_bits
-			 ) < 0 ){
+				&c->aes,
+				c->key,
+				c->key_bits
+				) < 0 ){
 		return -1*__LINE__;
 	}
 
@@ -258,10 +280,10 @@ unsigned char output[16]
 	mbedtls_crypt_aes_context_t * c = context;
 
 	if( mbedtls_aes_setkey_dec(
-			 &c->aes,
-			 c->key,
-			 c->key_bits
-			 ) < 0 ){
+				&c->aes,
+				c->key,
+				c->key_bits
+				) < 0 ){
 		return -1*__LINE__;
 	}
 
@@ -274,18 +296,18 @@ unsigned char output[16]
 }
 
 int aes_encrypt_cbc(void * context,
-						  u32 length,
-						  unsigned char iv[16],
+										u32 length,
+										unsigned char iv[16],
 const unsigned char *input,
 unsigned char *output
 ){
 	mbedtls_crypt_aes_context_t * c = context;
 
 	if( mbedtls_aes_setkey_enc(
-			 &c->aes,
-			 c->key,
-			 c->key_bits
-			 ) < 0 ){
+				&c->aes,
+				c->key,
+				c->key_bits
+				) < 0 ){
 		return -1*__LINE__;
 	}
 
@@ -309,10 +331,10 @@ unsigned char *output
 	mbedtls_crypt_aes_context_t * c = context;
 
 	if( mbedtls_aes_setkey_dec(
-			 &c->aes,
-			 c->key,
-			 c->key_bits
-			 ) < 0 ){
+				&c->aes,
+				c->key,
+				c->key_bits
+				) < 0 ){
 		return -1*__LINE__;
 	}
 
@@ -337,10 +359,10 @@ unsigned char *output){
 	mbedtls_crypt_aes_context_t * c = context;
 
 	if( mbedtls_aes_setkey_enc(
-			 &c->aes,
-			 c->key,
-			 c->key_bits
-			 ) < 0 ){
+				&c->aes,
+				c->key,
+				c->key_bits
+				) < 0 ){
 		return -1*__LINE__;
 	}
 
@@ -359,10 +381,10 @@ unsigned char *output
 	mbedtls_crypt_aes_context_t * c = context;
 
 	if( mbedtls_aes_setkey_dec(
-			 &c->aes,
-			 c->key,
-			 c->key_bits
-			 ) < 0 ){
+				&c->aes,
+				c->key,
+				c->key_bits
+				) < 0 ){
 		return -1*__LINE__;
 	}
 

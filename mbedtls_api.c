@@ -103,8 +103,8 @@ typedef struct {
 } mbedtls_socket_context_t;
 
 static void my_debug( void *ctx, int level,
-							 const char *file, int line,
-							 const char *str )
+											const char *file, int line,
+											const char *str )
 {
 	((void) level);
 
@@ -118,17 +118,17 @@ static void my_debug( void *ctx, int level,
 }
 
 int sslVerify(void * ctx,
-				  mbedtls_x509_crt *crt,
-				  int depth,
-				  uint32_t *flags){
+							mbedtls_x509_crt *crt,
+							int depth,
+							uint32_t *flags){
 	int ret = 0;
 
 	/*
-	  * If MBEDTLS_HAVE_TIME_DATE is defined, then the certificate date and time
-	  * validity checks will probably fail because this application does not set
-	  * up the clock correctly. We filter out date and time related failures
-	  * instead
-	  */
+		* If MBEDTLS_HAVE_TIME_DATE is defined, then the certificate date and time
+		* validity checks will probably fail because this application does not set
+		* up the clock correctly. We filter out date and time related failures
+		* instead
+		*/
 	*flags &= ~MBEDTLS_X509_BADCERT_FUTURE & ~MBEDTLS_X509_BADCERT_EXPIRED;
 
 
@@ -175,8 +175,8 @@ int tls_socket(void ** context, int domain, int type, int protocol){
 
 #if 0
 	if( (result = mbedtls_x509_crt_parse( &mbedtls_context->cacert,
-													  (const u8 *)root_certificate,
-													  strlen(root_certificate) + 1 )) < 0 ){
+																				(const u8 *)root_certificate,
+																				strlen(root_certificate) + 1 )) < 0 ){
 		mcu_debug_printf("failed to crt parse %X\n", -1*result);
 		//return -1;
 	}
@@ -213,9 +213,9 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	//net_connect calls socket and connect and getaddrinfo -- just call connect directly
 	//mbedtls_net_connect( &mbedtls_context->server_fd, "SERVER_NAME", 8080, MBEDTLS_NET_PROTO_TCP );
 	if( ( ret = mbedtls_ssl_config_defaults( &mbedtls_context->conf,
-														  MBEDTLS_SSL_IS_CLIENT,
-														  MBEDTLS_SSL_TRANSPORT_STREAM,
-														  MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
+																					 MBEDTLS_SSL_IS_CLIENT,
+																					 MBEDTLS_SSL_TRANSPORT_STREAM,
+																					 MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
 	{
 		mcu_debug_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
 		return -1;
@@ -246,10 +246,10 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 	}
 
 	mbedtls_ssl_set_bio( &mbedtls_context->ssl,
-								&mbedtls_context->server_fd,
-								mbedtls_net_send,
-								mbedtls_net_recv,
-								NULL);
+											 &mbedtls_context->server_fd,
+											 mbedtls_net_send,
+											 mbedtls_net_recv,
+											 NULL);
 
 	if( mbedtls_context->ticket.f_rng != 0 ){
 
@@ -268,8 +268,8 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 
 	if( connect(mbedtls_context->server_fd.fd, address, address_len) < 0 ){
 		mcu_debug_printf("Failed to connect at socket level %d (0x%X)\n",
-							  mbedtls_context->server_fd.fd,
-							  mbedtls_context->server_fd.fd);
+										 mbedtls_context->server_fd.fd,
+										 mbedtls_context->server_fd.fd);
 		return -1;
 	}
 
@@ -361,16 +361,16 @@ int tls_write_ticket(void * context, void * buf, int nbyte, u32 lifetime){
 	if( mbedtls_context->ticket.f_rng == 0 ){
 		//ticket hasn't been setup yet
 		if( mbedtls_ssl_ticket_setup(&mbedtls_context->ticket,
-											  mbedtls_ctr_drbg_random,
-											  &mbedtls_context->ctr_drbg,
-											  MBEDTLS_CIPHER_AES_256_GCM, lifetime) < 0 ){
+																 mbedtls_ctr_drbg_random,
+																 &mbedtls_context->ctr_drbg,
+																 MBEDTLS_CIPHER_AES_256_GCM, lifetime) < 0 ){
 			return -1;
 		}
 	}
 
 	int result = mbedtls_ssl_ticket_write(&mbedtls_context->ticket,
-													  &mbedtls_context->session,
-													  buf, end, &ticket_length, &ticket_lifetime);
+																				&mbedtls_context->session,
+																				buf, end, &ticket_length, &ticket_lifetime);
 
 	if( result < 0 ){
 		return result;
@@ -392,10 +392,10 @@ int tls_parse_ticket(void * context, void * buf, int nbyte){
 	if( mbedtls_context->ticket.f_rng == 0 ){
 		//ticket hasn't been setup yet
 		if( mbedtls_ssl_ticket_setup(&mbedtls_context->ticket,
-											  mbedtls_ctr_drbg_random,
-											  &mbedtls_context->ctr_drbg,
-											  MBEDTLS_CIPHER_AES_256_GCM,
-											  86400) < 0 ){
+																 mbedtls_ctr_drbg_random,
+																 &mbedtls_context->ctr_drbg,
+																 MBEDTLS_CIPHER_AES_256_GCM,
+																 86400) < 0 ){
 			mcu_debug_printf("Failed to setup ticket\n");
 			return -1;
 		}
@@ -405,12 +405,19 @@ int tls_parse_ticket(void * context, void * buf, int nbyte){
 		mbedtls_context->ticket.active = 0;
 	}
 
-	return mbedtls_ssl_ticket_parse(&mbedtls_context->ticket,
-											  &mbedtls_context->session,
-											  buf, nbyte);
+	return mbedtls_ssl_ticket_parse(
+				&mbedtls_context->ticket,
+				&mbedtls_context->session,
+				buf, nbyte
+				);
 }
 
 const mbedtls_api_t mbedtls_api = {
+	.sos_api = {
+		.name = "mbedtls",
+		.version = 0x0001,
+		.git_hash = SOS_GIT_HASH
+	},
 	.socket = tls_socket,
 	.close = tls_close,
 	.read = tls_read,
