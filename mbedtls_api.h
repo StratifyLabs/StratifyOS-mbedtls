@@ -17,8 +17,8 @@ typedef u32 in_addr_t;
 #endif
 
 //what is the top level API
-#include "mbedtls/net_sockets.h"
-#include "mbedtls/ssl.h"
+//#include "mbedtls/net_sockets.h"
+//#include "mbedtls/ssl.h"
 
 #define MBEDTLS_API_T 1 //increment when adding functions
 
