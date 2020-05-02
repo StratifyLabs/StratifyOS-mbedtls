@@ -1,6 +1,6 @@
 
 
-#include "link_config.h"
+#include "mbedtls_link_config.h"
 
 
 //all functions needed to run MBED TLS on stratify OS go here

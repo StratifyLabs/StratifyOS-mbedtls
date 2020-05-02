@@ -7,7 +7,7 @@ set(SOS_SOURCELIST
 	${SOURCES}
 	${HEADERS}
 	config/mbedtls/config.h
-	sos_config.h
+	mbedtls_sos_config.h
 	sos_config.c
 	net_sockets.c
 	timing_alt.h

@@ -24,7 +24,6 @@ include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-sdk.cmake)
 sos_sdk_clone_or_pull(./mbedtls https://github.com/ARMmbed/mbedtls.git ./)
 sos_sdk_checkout(mbedtls "mbedtls-2.16")
 
-#Need to rename mbedtls/include/mbedtls/config.h to mbedtls/include/mbedtls/config_notused_renamed.h
-if(EXISTS mbedtls/include/mbedtls/config.h)
-	file(RENAME mbedtls/include/mbedtls/config.h mbedtls/include/mbedtls/config_notused_renamed.h)
-endif()
+#Need to replace the config file
+file(COPY config/mbedtls/config.h DESTINATION mbedtls/include/mbedtls)
+

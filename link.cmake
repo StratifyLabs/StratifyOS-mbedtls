@@ -8,7 +8,7 @@ set(SOS_SOURCELIST
 	${HEADERS}
 	${SOURCES_PREFIX}/net_sockets.c
 	config/mbedtls/config.h
-	link_config.h
+	mbedtls_link_config.h
 	link_config.c
 	timing_alt.h
 	mbedtls_api.h
