@@ -17,7 +17,7 @@ set(SOS_SOURCELIST
 	threading.c)
 
 set(SOS_OPTION kernel)
-set(SOS_DEFINITIONS -DHAVE_LWIP_SOCKETS_H)
+set(SOS_DEFINITIONS ${SOS_DEFINITIONS} -DHAVE_LWIP_SOCKETS_H)
 
 # kernel release and debug configurations
 option(BUILD_RELEASE "Build release version of library" OFF)
