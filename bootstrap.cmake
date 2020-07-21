@@ -21,6 +21,7 @@ include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-sdk.cmake)
 
 
 #Pull or clone mbed-tls project
+file(REMOVE mbedtls/include/mbedtls/config.h)
 sos_sdk_clone_or_pull(./mbedtls https://github.com/ARMmbed/mbedtls.git ./)
 sos_sdk_checkout(mbedtls "mbedtls-2.16")
 
