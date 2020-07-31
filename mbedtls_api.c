@@ -16,7 +16,7 @@
 #if defined __link
 #define MBEDTLS_DEBUG_LEVEL 0
 #undef mcu_debug_printf
-#define mcu_debug_printf printf
+#define mcu_debug_printf(...)
 #else
 #define MBEDTLS_DEBUG_LEVEL 1
 #include <mcu/debug.h>
@@ -269,9 +269,11 @@ int tls_connect(void * context, const struct sockaddr *address, socklen_t addres
 
 
 	if( connect(mbedtls_context->server_fd.fd, address, address_len) < 0 ){
+#if 0
 		mcu_debug_printf("Failed to connect at socket level %d (0x%X)\n",
 										 mbedtls_context->server_fd.fd,
 										 mbedtls_context->server_fd.fd);
+#endif
 		return -1;
 	}
 
