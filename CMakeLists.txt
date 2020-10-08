@@ -19,9 +19,11 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/mbedtls/library)
 		COMMAND git clone --branch ${MBEDTLS_BRANCH} ${MBEDTLS_GIT_REPOSITORY}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		)
-	file(REMOVE mbedtls/include/mbedtls/config.h)
-	file(COPY config/mbedtls/config.h DESTINATION mbedtls/include/mbedtls)
+	file(REMOVE ${CMAKE_SOURCE_DIR}/mbedtls/include/mbedtls/config.h)
+	file(COPY ${CMAKE_SOURCE_DIR}/config/mbedtls/config.h DESTINATION ${CMAKE_SOURCE_DIR}/mbedtls/include/mbedtls)
 endif()
+
+file(COPY ${CMAKE_SOURCE_DIR}/config/mbedtls/config.h DESTINATION ${CMAKE_SOURCE_DIR}/mbedtls/include/mbedtls)
 
 
 set(SOS_NAME mbedtls)
