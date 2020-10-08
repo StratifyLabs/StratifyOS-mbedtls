@@ -8,17 +8,30 @@ set(CMAKE_MODULE_PATH ${SOS_SDK_PATH}/Tools/gcc/cmake)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/sos-toolchain.cmake)
 include(sos-sdk)
 
+include(ExternalProject)
+
+set(MBEDTLS_GIT_REPOSITORY "https://github.com/ARMmbed/mbedtls.git")
+set(MBEDTLS_BRANCH "mbedtls-2.16")
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/mbedtls/library)
+	message(STATUS "Need to clone manually for the first call to cmake")
+	execute_process(
+		COMMAND git clone --branch ${MBEDTLS_BRANCH} ${MBEDTLS_GIT_REPOSITORY}
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		)
+	file(REMOVE mbedtls/include/mbedtls/config.h)
+	file(COPY config/mbedtls/config.h DESTINATION mbedtls/include/mbedtls)
+endif()
+
+
 set(SOS_NAME mbedtls)
 project(StratifyOS-mbedtls C)
-
 
 set(SOS_DEFINITIONS IS_LOCAL_BUILD=1)
 set(SOS_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/config/mbedtls mbedtls/include ${CMAKE_SOURCE_DIR})
 
 install(DIRECTORY mbedtls/include/mbedtls DESTINATION include)
 install(FILES mbedtls_api.h mbedtls_link_config.h mbedtls_sos_config.h DESTINATION include)
-#include( ${CMAKE_SOURCE_DIR}/${SOS_BUILD_CONFIG}.cmake )
-
 
 include(${CMAKE_SOURCE_DIR}/sources.cmake)
 
