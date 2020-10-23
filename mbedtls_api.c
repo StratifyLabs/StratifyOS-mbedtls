@@ -165,12 +165,12 @@ int tls_socket(void **context, int domain, int type, int protocol) {
                         strlen(pers));
 
 #if 0
-	if( (result = mbedtls_x509_crt_parse( &mbedtls_context->cacert,
-																				(const u8 *)root_certificate,
-																				strlen(root_certificate) + 1 )) < 0 ){
-		mcu_debug_printf("failed to crt parse %X\n", -1*result);
-		//return -1;
-	}
+  if ((result = mbedtls_x509_crt_parse(&mbedtls_context->cacert,
+                                       (const u8 *)root_certificate,
+                                       strlen(root_certificate) + 1)) < 0) {
+    mcu_debug_printf("failed to crt parse %X\n", -1 * result);
+    // return -1;
+  }
 #endif
 
   // call socket directly

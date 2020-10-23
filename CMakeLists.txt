@@ -82,11 +82,6 @@ target_compile_definitions(${RELEASE_TARGET}
 	IS_LOCAL_BUILD=1
 	)
 
-target_compile_options(${RELEASE_TARGET}
-	PUBLIC
-	-Os
-	)
-
 target_include_directories(${RELEASE_TARGET}
 	PUBLIC
 	PRIVATE
@@ -94,15 +89,35 @@ target_include_directories(${RELEASE_TARGET}
 	)
 
 
-option(BUILD_DEBUG "Build debug version of library" ON)
-if(BUILD_DEBUG)
 sos_sdk_library_target(DEBUG mbedtls "${LIB_OPTION}" debug ${SOS_ARCH})
 add_library(${DEBUG_TARGET} STATIC)
 sos_sdk_copy_target(${RELEASE_TARGET} ${DEBUG_TARGET})
-sos_sdk_library_add_arch_targets("${DEBUG_OPTIONS}" ${SOS_ARCH})
+sos_sdk_library_add_arch_targets("${DEBUG_OPTIONS}" ${SOS_ARCH} "")
+
+if(SOS_IS_LINK)
+sos_sdk_library_target(COVERAGE mbedtls "${LIB_OPTION}" coverage ${SOS_ARCH})
+add_library(${COVERAGE_TARGET} STATIC)
+sos_sdk_copy_target(${RELEASE_TARGET} ${COVERAGE_TARGET})
+
+target_compile_options(${COVERAGE_TARGET}
+	PUBLIC
+	--coverage
+	)
+
+sos_sdk_library_add_arch_targets("${COVERAGE_OPTIONS}" ${SOS_ARCH} StratifyOS)
 endif()
 
-sos_sdk_library_add_arch_targets("${RELEASE_OPTIONS}" ${SOS_ARCH})
+sos_sdk_library_add_arch_targets("${RELEASE_OPTIONS}" ${SOS_ARCH} "")
+
+target_compile_options(${RELEASE_TARGET}
+	PUBLIC
+	-Os
+	)
+
+target_compile_options(${DEBUG_TARGET}
+	PUBLIC
+	-Os
+	)
 
 add_custom_target(
 	${API_NAME}_format
